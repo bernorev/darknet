@@ -13,7 +13,7 @@ from queue import Queue
 from threading import Thread
 stored_exception=None
 
-
+from darknet import set_gpu
 def video_capture(frame_queue, darknet_image_queue ,width,height):
     while cap.isOpened():
         ret, frame = cap.read()
@@ -46,7 +46,7 @@ def convertBack(x, y, w, h):
 netMain = None
 metaMain = None
 altNames = None
-
+set_gpu(0)
 
 def YOLO():
 
@@ -56,17 +56,21 @@ def YOLO():
     #weightPath = "./backup/yolov3_tiny_3l_fruit_counting_default_anchors_last.weights"
     #metaPath = "./data/fruit.data"
 
-    #configPath = "./cfg/yolov4_fruit.cfg"
-    #weightPath = "./models/yolov4_fruit_last.weights"
-    #metaPath = "./data/fruit.data"
+    configPath = "./cfg/yolov4-fruit.cfg"
+    weightPath = "./backup/yolov4-fruit_last.weights"
+    metaPath = "./data/fruit.data"
 
     #configPath = "./cfg/yolov3_tiny_pan_fruit.cfg"
     #weightPath = "./backup/yolov3_tiny_pan_fruit_last.weights"
     #metaPath = "./data/fruit.data"
 
-    configPath = "./cfg/yolov4-tiny_fruit.cfg"
-    weightPath = "./models/yolov4-tiny_fruit_last.weights"
-    metaPath = "./data/fruit.data"
+    #configPath = "./cfg/yolov4-tiny_fruit.cfg"
+    #weightPath = "./models/yolov4-tiny_fruit_last.weights"
+    #metaPath = "./data/fruit.data"
+
+    #configPath = "./cfg/yolov4-tiny_fruit_tight.cfg"
+    #weightPath = "./backup/yolov4-tiny_fruit_tight_11000.weights"
+    #metaPath = "./data/fruit.data"
 
     #configPath = "./cfg/yolov4-tiny_3lSPP.txt"
     #weightPath = "./backup/yolov4-tiny_3lSPP_last.weights"
@@ -124,8 +128,8 @@ def YOLO():
     
     print("Starting the YOLO loop...")
 
-
-    while True:
+    key = ''
+    while key != 113:
         prev_time = time.time()
 
         frame_read = frame_queue.get()
@@ -140,8 +144,9 @@ def YOLO():
         
         print(1/(time.time()-prev_time))
         cv2.imshow('Demo', image)
-        cv2.waitKey(1)
-        #out.write(image)
+        key = cv2.waitKey(2)
+        out.write(image)
+    cv2.destroyAllWindows()
     cap.release()
     out.release()
 
