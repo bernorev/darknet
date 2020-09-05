@@ -19,12 +19,33 @@ def video_capture(frame_queue, darknet_image_queue ,width,height):
         ret, frame = cap.read()
         if ret:
             ###
-            #frame = frame[400:680,:]
+            ###
+            vid_width = 1080
+
+            net_width_ideal = height * 9 / 16
+            net_width = width #736
+
+            #net_width_ratio = round(net_width/net_width_ideal,2)
+            net_vid_width_ratio = net_width_ideal/vid_width
+
+            center_line = ((vid_width*net_vid_width_ratio)/2)
+
+            startPixel = round(center_line-(net_width/2))
+            endPixel = round(center_line+(net_width/2))
+            frame = frame[startPixel:endPixel,:]
             ###
             frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE) 
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame_resized = cv2.resize(frame_rgb, (width, height),
                                     interpolation=cv2.INTER_LINEAR)
+            #colour correction
+            lab = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2LAB)
+            lab_planes = cv2.split(lab)
+            clahe = cv2.createCLAHE(clipLimit=2.0,tileGridSize=(8,8))
+            lab_planes[0] = clahe.apply(lab_planes[0])
+            lab = cv2.merge(lab_planes)
+            frame_resized = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
+
             frame_queue.put(frame_resized)
             darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())
             darknet_image_queue.put(darknet_image)
@@ -56,17 +77,21 @@ def YOLO():
     #weightPath = "./backup/yolov3_tiny_3l_fruit_counting_default_anchors_last.weights"
     #metaPath = "./data/fruit.data"
 
-    configPath = "./cfg/yolov4-fruit.cfg"
-    weightPath = "./backup/yolov4-fruit_last.weights"
-    metaPath = "./data/fruit.data"
+    #configPath = "./cfg/yolov4-fruit.cfg"
+    #weightPath = "./backup/yolov4-fruit_last.weights"
+    #metaPath = "./data/fruit.data"
 
     #configPath = "./cfg/yolov3_tiny_pan_fruit.cfg"
     #weightPath = "./backup/yolov3_tiny_pan_fruit_last.weights"
     #metaPath = "./data/fruit.data"
 
     #configPath = "./cfg/yolov4-tiny_fruit.cfg"
-    #weightPath = "./models/yolov4-tiny_fruit_last.weights"
+    #weightPath = "./backup/yolov4-tiny_fruit_last.weights"
     #metaPath = "./data/fruit.data"
+
+    configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
+    weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
+    metaPath = "./data/fruit.data"
 
     #configPath = "./cfg/yolov4-tiny_fruit_tight.cfg"
     #weightPath = "./backup/yolov4-tiny_fruit_tight_11000.weights"

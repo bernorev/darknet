@@ -19,17 +19,25 @@ def video_capture(frame_queue, darknet_image_queue ,width,height):
         ret, frame = cap.read()
         if ret:
             ###
-            center_line = (1080/2)
-            
-            startPixel = round(center_line-(width/2))
-            endPixel = round(center_line+(width/2))
+            vid_width = 1080
+
+            net_width_ideal = height * 9 / 16
+            net_width = width #736
+
+            #net_width_ratio = round(net_width/net_width_ideal,2)
+            net_vid_width_ratio = net_width_ideal/vid_width
+
+            center_line = ((vid_width*net_vid_width_ratio)/2)
+
+            startPixel = round(center_line-(net_width/2))
+            endPixel = round(center_line+(net_width/2))
             frame = frame[startPixel:endPixel,:]
             #frame = frame[400:680,:]
             ###
             frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE) 
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame_resized = cv2.resize(frame_rgb, (width, height),interpolation=cv2.INTER_LINEAR)    
-
+            #colour correction
             lab = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2LAB)
             lab_planes = cv2.split(lab)
             clahe = cv2.createCLAHE(clipLimit=2.0,tileGridSize=(8,8))
@@ -100,13 +108,13 @@ def YOLO():
     #weightPath = "./models/yolov3_tiny_pan_fruit_last.weights"
     #metaPath = "./data/fruit.data"
 
-    configPath = "./cfg/yolov4-tiny_fruit.cfg"
-    weightPath = "./backup/yolov4-tiny_fruit_last.weights"
-    metaPath = "./data/fruit.data"
-
-    #configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
-    #weightPath = "./backup/yolov4-tiny-3l_fruit_best.weights"
+    #configPath = "./cfg/yolov4-tiny_fruit.cfg"
+    #weightPath = "./backup/yolov4-tiny_fruit_last.weights"
     #metaPath = "./data/fruit.data"
+
+    configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
+    weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
+    metaPath = "./data/fruit.data"
     
     
     if not os.path.exists(configPath):
@@ -140,8 +148,7 @@ def YOLO():
 
     #cap = cv2.VideoCapture("boontjieskloof_l_8.MP4")
     #cap = cv2.VideoCapture("E:/FruitCounting_Videos/tweefontein_videos/T10_1_left.MP4")
-    cap = cv2.VideoCapture("E:/FruitCounting_Videos/JakkalsRiver_23_01_2020/40_left_2.MP4")
-
+    cap = cv2.VideoCapture("T06_1_right.MP4")
 
     Thread(target=video_capture, args=(frame_queue, darknet_image_queue,width,height)).start()
     #cap = cv2.VideoCapture(0)
@@ -238,10 +245,10 @@ def YOLO():
 
 
         # draw line
-        #cv2.line(image, line[0], line[1], (255, 0, 0), 3)
+        cv2.line(image, line[0], line[1], (255, 0, 0), 3)
 
         # draw counter
-        #cv2.putText(image, str(counter), ((50),200), cv2.FONT_HERSHEY_DUPLEX, 3, (255, 0, 0), 3)       
+        cv2.putText(image, str(counter), ((50),200), cv2.FONT_HERSHEY_DUPLEX, 3, (255, 0, 0), 3)       
 
 
         #cv2.putText(image, "Queue Size: {}".format(cap.Q.qsize()),
