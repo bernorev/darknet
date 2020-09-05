@@ -36,7 +36,6 @@ def sample(probs):
     return len(probs)-1
 
 def draw_boxes(detections, image, colors):
-    import cv2
     for label, confidence, bbox in detections:
         left, top, right, bottom = bbox2points(bbox)
 
@@ -44,26 +43,28 @@ def draw_boxes(detections, image, colors):
         y = int((top + bottom)/2)
         #print(x)
         #print(y)
+        try:
+            depth_val = depth.get_value(y, x)
 
-        depth_val = depth.get_value(y, x)
+            distance = depth_val
 
-        distance = depth_val
+            print(f'width {left-right} height {bottom-top} distance {distance}')
 
-        print(f'width {left-right} height {bottom-top} distance {distance}')
+            #angle = 2*
 
-        #angle = 2*
-
-        cv2.rectangle(image, (left, top), (right, bottom), colors[label], 1)
-        cv2.putText(image, "{} [{:.2f}] {}".format(label, float(confidence),distance),
-                    (left, top - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                    colors[label], 2)
-        
-        '''
-        cv2.rectangle(image, (left, top), (right, bottom), colors[label], 1)
-        cv2.putText(image, "{} [{:.2f}]".format(label, float(confidence)),
-                    (left, top - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                    colors[label], 2)
-        '''
+            cv2.rectangle(image, (left, top), (right, bottom), colors[label], 1)
+            cv2.putText(image, "{} [{:.2f}] {}".format(label, float(confidence),distance),
+                        (left, top - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                        colors[label], 2)
+            
+            '''
+            cv2.rectangle(image, (left, top), (right, bottom), colors[label], 1)
+            cv2.putText(image, "{} [{:.2f}]".format(label, float(confidence)),
+                        (left, top - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                        colors[label], 2)
+            '''
+        except:
+            pass
     return image
 
 depth = sl.Mat()
@@ -78,8 +79,8 @@ def video_capture(frame_queue, darknet_image_queue ,width,height):
     init_params = sl.InitParameters()
     init_params.depth_mode = sl.DEPTH_MODE.PERFORMANCE  # Use PERFORMANCE depth mode
     init_params.coordinate_units = sl.UNIT.METER  # Use meter units (for depth measurements)
-    init_params.camera_resolution = sl.RESOLUTION.HD1080  # Use HD720 video mode
-    init_params.camera_fps = 30   # Set fps at 15
+    init_params.camera_resolution = sl.RESOLUTION.HD720  # Use HD720 video mode
+    init_params.camera_fps = 60   # Set fps at 15
     # Open the camera
     err = zed.open(init_params)
     if err != sl.ERROR_CODE.SUCCESS:
@@ -154,9 +155,9 @@ def YOLO():
     #metaPath = "./cfg/coco.data"
     
 
-    configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
-    #weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
-    #metaPath = "./data/fruit.data"
+    configPath = "./cfg/yolov4-tiny-3l_fruit_zed.cfg"
+    weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
+    metaPath = "./data/fruit.data"
     
     
     if not os.path.exists(configPath):
@@ -208,8 +209,6 @@ def YOLO():
         image = draw_boxes(detections, frame_read,class_colors)
     #   print(detections[1])
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-
 
         depth_image=0
         #cv2.putText(image, "Queue Size: {}".format(cap.Q.qsize()),
