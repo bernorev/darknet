@@ -46,9 +46,9 @@ def video_capture(frame_queue, darknet_image_queue ,width,height):
             frame_resized = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
 
             frame_queue.put(frame_resized)
-            darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())
-            darknet_image_queue.put(darknet_image)
-            #print(darknet_image_queue.qsize())
+            #darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())
+            #darknet_image_queue.put(darknet_image)
+            print("Frame queue size : " + str(frame_queue.qsize()))
         else :
             print("readerror")
             #break
@@ -95,26 +95,18 @@ def YOLO():
     counter = 0
 
     global metaMain, netMain, altNames, cap, darknet_image
-    
-    #configPath = "./cfg/yolov3_tiny_3l_fruit_counting_default_anchors.cfg"
-    #weightPath = "./backup/yolov3_tiny_3l_fruit_counting_default_anchors_last.weights"
-    #metaPath = "./data/fruit.data"
 
     #configPath = "./cfg/yolov4_fruit.cfg"
     #weightPath = "./models/yolov4_fruit_last.weights"
     #metaPath = "./data/fruit.data"
 
-    #configPath = "./cfg/yolov3_tiny_pan_fruit.cfg"
-    #weightPath = "./models/yolov3_tiny_pan_fruit_last.weights"
-    #metaPath = "./data/fruit.data"
-
-    #configPath = "./cfg/yolov4-tiny_fruit.cfg"
-    #weightPath = "./backup/yolov4-tiny_fruit_last.weights"
-    #metaPath = "./data/fruit.data"
-
-    configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
-    weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
+    configPath = "./cfg/yolov4-tiny_fruit.cfg"
+    weightPath = "./backup/yolov4-tiny_fruit_last.weights"
     metaPath = "./data/fruit.data"
+
+    #configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
+    #weightPath = "./backup/yolov4-tiny-3l_fruit_model.weights"
+    #metaPath = "./data/fruit.data"
     
     
     if not os.path.exists(configPath):
@@ -130,7 +122,7 @@ def YOLO():
 
 
     darknet_image_queue = Queue(maxsize=1)
-    frame_queue = Queue(maxsize=1)
+    frame_queue = Queue(maxsize=3)
 
     network, class_names, class_colors = darknet.load_network(
         configPath,
@@ -148,7 +140,7 @@ def YOLO():
 
     #cap = cv2.VideoCapture("boontjieskloof_l_8.MP4")
     #cap = cv2.VideoCapture("E:/FruitCounting_Videos/tweefontein_videos/T10_1_left.MP4")
-    cap = cv2.VideoCapture("T06_1_right.MP4")
+    cap = cv2.VideoCapture("videos/T06_1_right.MP4")
 
     Thread(target=video_capture, args=(frame_queue, darknet_image_queue,width,height)).start()
     #cap = cv2.VideoCapture(0)
@@ -175,20 +167,20 @@ def YOLO():
         prev_time = time.time()
 
         frame_read = frame_queue.get()
+        darknet.copy_image_from_bytes(darknet_image, frame_read.tobytes())
+        #
+        detections = darknet.detect_image(network, class_names, darknet_image, thresh=0.03,nms=0.6)
         
-        detections = darknet.detect_image(network, class_names, darknet_image_queue.get(), thresh=0.05,nms=0.55)
-
         
         #print(detections[1])
         image = frame_read
         image = darknet.draw_boxes(detections, image, class_colors)
-        
         if W is None or H is None:
             (H, W) = image.shape[:2]
         line = [(W // 2,0), (W // 2,H)]
         rects = []
         for detection in detections:
-            if (detection[2][2] * detection[2][3]) > 100 : 
+          #  if (detection[2][2] * detection[2][3]) > 100 : 
                 x, y, w, h = detection[2][0],\
                     detection[2][1],\
                     detection[2][2],\
@@ -255,12 +247,13 @@ def YOLO():
         #            (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
         
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)   
-        print(1/(time.time()-prev_time))
+        
         cv2.imshow('Demo', image)
         k = cv2.waitKey(1)
         if k == 27:
             break
-        out.write(image)
+        #out.write(image)
+        print(1/(time.time()-prev_time))
     cap.release()
     out.release()
 

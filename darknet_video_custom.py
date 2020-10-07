@@ -47,9 +47,9 @@ def video_capture(frame_queue, darknet_image_queue ,width,height):
             frame_resized = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
 
             frame_queue.put(frame_resized)
-            darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())
-            darknet_image_queue.put(darknet_image)
-            #print(darknet_image_queue.qsize())
+            #darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())
+            #darknet_image_queue.put(darknet_image)
+            print("Frame queue size : " + str(frame_queue.qsize()))
         else :
             print("readerror")
             #break
@@ -85,9 +85,7 @@ def YOLO():
     weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
     metaPath = "./data/fruit.data"
 
-    #configPath = "./cfg/yolov4-tiny_fruit_tight.cfg"
-    #weightPath = "./backup/yolov4-tiny_fruit_tight_11000.weights"
-    #metaPath = "./data/fruit.data"
+
 
     
     
@@ -104,7 +102,7 @@ def YOLO():
 
 
     darknet_image_queue = Queue(maxsize=1)
-    frame_queue = Queue(maxsize=1)
+    frame_queue = Queue(maxsize=3)
 
     network, class_names, class_colors = darknet.load_network(
         configPath,
@@ -120,7 +118,7 @@ def YOLO():
     darknet_image = darknet.make_image(width, height, 3)  
 
 
-    cap = cv2.VideoCapture("videos/GH010050.MP4")
+    cap = cv2.VideoCapture("videos/T06_1_right.MP4")
 
 
     Thread(target=video_capture, args=(frame_queue, darknet_image_queue,width,height)).start()
@@ -148,7 +146,9 @@ def YOLO():
 
         frame_read = frame_queue.get()
 
-        detections = darknet.detect_image(network, class_names, darknet_image_queue.get(), thresh=0.1)
+        darknet.copy_image_from_bytes(darknet_image, frame_read.tobytes())
+
+        detections = darknet.detect_image(network, class_names, darknet_image, thresh=0.05)
 
         image = darknet.draw_boxes(detections, frame_read, class_colors)
         #print(detections[1])
@@ -156,10 +156,11 @@ def YOLO():
         #cv2.putText(image, "Queue Size: {}".format(cap.Q.qsize()),
         #            (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
         
-        print(1/(time.time()-prev_time))
+        #print(1/(time.time()-prev_time))
         cv2.imshow('Demo', image)
-        key = cv2.waitKey(2)
+        key = cv2.waitKey(1)
         out.write(image)
+        print(1/(time.time()-prev_time))
     cv2.destroyAllWindows()
     cap.release()
     out.release()
