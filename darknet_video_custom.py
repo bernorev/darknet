@@ -73,17 +73,17 @@ def YOLO():
 
     global metaMain, netMain, altNames, cap, darknet_image
 
-    #configPath = "./cfg/yolov4-fruit.cfg"
-    #weightPath = "./backup/yolov4_fruit_final.weights"
-    #metaPath = "./data/fruit.data"
+    configPath = "./cfg/yolov4-fruit.cfg"
+    weightPath = "./backup/yolov4-fruit_last.weights"
+    metaPath = "./data/fruit.data"
 
     #configPath = "./cfg/yolov4-tiny_fruit.cfg"
     #weightPath = "./backup/yolov4-tiny_fruit_last.weights"
     #metaPath = "./data/fruit.data"
 
-    configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
-    weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
-    metaPath = "./data/fruit.data"
+    #configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
+    #weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
+    #metaPath = "./data/fruit.data"
 
 
 

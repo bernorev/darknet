@@ -7,7 +7,8 @@ import os
 workdir = os.path.dirname(os.path.abspath(__file__))
 while True:
     print("Please select your image directory.")
-    current_dir = workdir + "/img"
+    #current_dir = workdir + "/img"
+    current_dir = "/home/berno/Documents/img_fruitcounting"
     if current_dir == None or current_dir == "":
         print("You must select a directory.")
         continue
