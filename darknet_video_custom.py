@@ -34,7 +34,9 @@ def video_capture(frame_queue, darknet_image_queue ,width,height):
             endPixel = round(center_line+(net_width/2))
             frame = frame[startPixel:endPixel,:]
             ###
-            frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE) 
+            #frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE) 
+            frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE) 
+
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame_resized = cv2.resize(frame_rgb, (width, height),
                                     interpolation=cv2.INTER_LINEAR)
@@ -49,7 +51,7 @@ def video_capture(frame_queue, darknet_image_queue ,width,height):
             frame_queue.put(frame_resized)
             #darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())
             #darknet_image_queue.put(darknet_image)
-            print("Frame queue size : " + str(frame_queue.qsize()))
+            #print("Frame queue size : " + str(frame_queue.qsize()))
         else :
             print("readerror")
             #break
@@ -73,17 +75,17 @@ def YOLO():
 
     global metaMain, netMain, altNames, cap, darknet_image
 
-    configPath = "./cfg/yolov4-fruit.cfg"
-    weightPath = "./backup/yolov4-fruit_last.weights"
-    metaPath = "./data/fruit.data"
+    #configPath = "./cfg/yolov4-fruit.cfg"
+    #weightPath = "./backup/yolov4-fruit_last.weights"
+    #metaPath = "./data/fruit.data"
 
     #configPath = "./cfg/yolov4-tiny_fruit.cfg"
     #weightPath = "./backup/yolov4-tiny_fruit_last.weights"
     #metaPath = "./data/fruit.data"
 
-    #configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
-    #weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
-    #metaPath = "./data/fruit.data"
+    configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
+    weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
+    metaPath = "./data/fruit.data"
 
 
 
@@ -118,7 +120,7 @@ def YOLO():
     darknet_image = darknet.make_image(width, height, 3)  
 
 
-    cap = cv2.VideoCapture("videos/T06_1_right.MP4")
+    cap = cv2.VideoCapture("videos/GH011084.MP4")
 
 
     Thread(target=video_capture, args=(frame_queue, darknet_image_queue,width,height)).start()
