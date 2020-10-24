@@ -2,18 +2,23 @@ from ctypes import *
 import math
 import random
 import os
+import sys
 import cv2
 import numpy as np
 import time
 import darknet
-
+import imutils
+import csv
+import pandas as pd
+import argparse
+from darknet import set_gpu
 #from imutils.video import FileVideoStream
 from imutils.video import FPS
 from queue import Queue
 from threading import Thread
 stored_exception=None
 from sort import *
-
+from gpx_to_csv import Converter
 def video_capture(frame_queue, darknet_image_queue ,width,height):
     while cap.isOpened():
         ret, frame = cap.read()
@@ -34,13 +39,14 @@ def video_capture(frame_queue, darknet_image_queue ,width,height):
             frame = frame[startPixel:endPixel,:]
             #frame = frame[400:680,:]
             ###
-            frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE) 
+            frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+            #frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE) 
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            frame_resized = cv2.resize(frame_rgb, (width, height),interpolation=cv2.INTER_LINEAR)    
+            frame_resized = cv2.resize(frame_rgb, (width, height),interpolation=cv2.INTER_CUBIC)    
             #colour correction
             lab = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2LAB)
             lab_planes = cv2.split(lab)
-            clahe = cv2.createCLAHE(clipLimit=2.0,tileGridSize=(8,8))
+            clahe = cv2.createCLAHE(clipLimit=3.0,tileGridSize=(8,8))
             lab_planes[0] = clahe.apply(lab_planes[0])
             lab = cv2.merge(lab_planes)
             frame_resized = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
@@ -48,7 +54,7 @@ def video_capture(frame_queue, darknet_image_queue ,width,height):
             frame_queue.put(frame_resized)
             #darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())
             #darknet_image_queue.put(darknet_image)
-            print("Frame queue size : " + str(frame_queue.qsize()))
+            #print("Frame queue size : " + str(frame_queue.qsize()))
         else :
             print("readerror")
             #break
@@ -79,34 +85,65 @@ def ccw(A,B,C):
 # map each unique object ID to a TrackableObject
 Sort()
 
-from darknet import set_gpu
+ap = argparse.ArgumentParser()
 
-set_gpu(0)
+ap.add_argument("-i", "--input", type=str,required=True,help="path to video file")
+#ap.add_argument("-gps", "--gps", type=str,required=True,help="path to gps file")
+ap.add_argument("-gpu", "--gpu",default=0 ,type=int,required=False,help="GPU to use")
+args = vars(ap.parse_args())
+
+
+set_gpu(args["gpu"])
+
+workdir = os.getcwd()
+#Extract GPS coordinates
+#gopro2gpx -s -vvv T06_1_right.MP4 T06
+
+
+#gps extract string for gopro2gpx 
+#videos/GH011086.MP4
+extract_str = f'gopro2gpx -vvv {args["input"]} {args["input"][:-4]}'
+os.system(extract_str)
+
+#convert GPX to csv
+if Converter(input_file=f'{args["input"][:-4]}.gpx').gpx_to_csv(output_file=f'{args["input"][:-4]}.csv') == False:
+    sys.exit("GPS file conversion failed")
+#gps file to use
+
+
+gps_csv_file = f'{args["input"][:-4]}.csv'
+
+gps_csv_file = gps_csv_file.replace("_R.","_L.")
+print(f'GPS file = ' + gps_csv_file)
+time.sleep(1)
+#gps_csv_file = 'videos/SRblock2_1_L.csv'
+
 
 def YOLO():
+    timeElapsed = 0.0
+    set_gpu(args["gpu"])
 
     COLORS = np.random.randint(0, 255, size=(200, 3),
         dtype="uint8")
     #ct = CentroidTracker(maxDisappeared=0, maxDistance=200)
-    ct = Sort(max_age=2)
+    ct = Sort(max_age=1, min_hits=1, iou_threshold=0.01)
     trackers = []
-    trackableObjects = {}
     memory = {}
     counter = 0
 
     global metaMain, netMain, altNames, cap, darknet_image
 
-    configPath = "./cfg/yolov4-fruit.cfg"
-    weightPath = "./backup/yolov4-fruit_last.weights"
-    metaPath = "./data/fruit.data"
+    #configPath = "./cfg/yolov4-fruit.cfg"
+    #weightPath = "./backup/yolov4-fruit_last.weights"
+    #metaPath = "./data/fruit.data"
 
     #configPath = "./cfg/yolov4-tiny_fruit.cfg"
     #weightPath = "./backup/yolov4-tiny_fruit_last.weights"
     #metaPath = "./data/fruit.data"
 
-    #configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
-    #weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
-    #metaPath = "./data/fruit.data"
+    configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
+    weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
+    metaPath = "./data/fruit.data"
     
     
     if not os.path.exists(configPath):
@@ -137,23 +174,50 @@ def YOLO():
     # Create an image we reuse for each detect
     darknet_image = darknet.make_image(width, height, 3)  
 
-    #cap = cv2.VideoCapture("boontjieskloof_l_8.MP4")
-    #cap = cv2.VideoCapture("E:/FruitCounting_Videos/tweefontein_videos/T10_1_left.MP4")
-    cap = cv2.VideoCapture("videos/GH010053.MP4")
+    #set input video and get video metadata
+    cap = cv2.VideoCapture(args["input"])
+    print(args["input"])
+    print("Total Frame")
+    total_vid_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+    print(total_vid_frames)
+    vid_fps = int(round(cap.get(cv2.CAP_PROP_FPS)))
+    print(vid_fps)
+
+    result_video_name = args["input"].rsplit('.')[-2].rsplit('/',1)[-1] + "_counting.avi"
+
+
 
     Thread(target=video_capture, args=(frame_queue, darknet_image_queue,width,height)).start()
-    #cap = cv2.VideoCapture(0)
-    #cap = FileVideoStream("F:/FruitCounting_Videos/tweefontein_videos/T10_1_left.MP4").start()
-    #cap = cv2.VideoCapture("/media/berno/sata_disk/FruitCounting Videos/goedgegun_videos/green_apples_left_1.MP4")
 
-    #cap = FileVideoStream("T06_1_right.MP4").start()
 
-    #cap = FileVideoStream("/media/berno/TOSHIBA EXT/FruitCounting_Videos/tweefontein_videos/T10_1_left.MP4").start()
-    #cap = FileVideoStream("/home/berno/Videos/MS93_left_2.mp4").start()
+
+    totalFrames=1
+    #set counting output file
+    print(args["input"])
+    counting_file_name = args["input"].rsplit('.')[-2].rsplit('/',1)[-1] + "_counting.csv"
+    counting_file = open(os.path.join(workdir, "results", counting_file_name), mode='w', newline='')
+    counting_writer = csv.writer(counting_file, delimiter=',')
+    counting_writer.writerow(["elapsed_time", "counter","section_count",'longitude','latitude'])
+    counting_file.close()
+
+    #wait for everything to initialize
     time.sleep(1.0)
 
+
+    i = 0
+    prev_time = 0
+    startTime =time.time()
+    elapsed_time = time.time()
+    frames_count = 0
+    section_count = 0
+    video_end_frames = 0
     #cap.set(3, 1280)
     #cap.set(4, 1024)
+
+    #output video file
+
+    #counting_file_name = args["input"].rsplit('.')[-2].rsplit('/',1)[-1] + "_counting.csv"
+
     out = cv2.VideoWriter(
         "output.avi", cv2.VideoWriter_fourcc(*"MJPG"), 120.0,
         (width, height))
@@ -162,24 +226,36 @@ def YOLO():
     W = None
     H = None
     tracks = ct.update([])
+
+    gps_data = pd.read_csv(gps_csv_file)
+    gps_data = gps_data.drop_duplicates(subset=['time'], keep='first')
+
+    #gps_point_count = len(gps_data.index)
+    #vid_frames_per_gps_point = total_vid_frames/gps_point_count
+
+
     while True:
         prev_time = time.time()
 
         frame_read = frame_queue.get()
         darknet.copy_image_from_bytes(darknet_image, frame_read.tobytes())
         #
-        detections = darknet.detect_image(network, class_names, darknet_image, thresh=0.03,nms=0.6)
+        detections = darknet.detect_image(network, class_names, darknet_image, thresh=0.1,nms=0.6)
         
         
         #print(detections[1])
         image = frame_read
         image = darknet.draw_boxes(detections, image, class_colors)
+
+        totalFrames += 1
+        frames_count += 1
+
         if W is None or H is None:
             (H, W) = image.shape[:2]
         line = [(W // 2,0), (W // 2,H)]
         rects = []
         for detection in detections:
-          #  if (detection[2][2] * detection[2][3]) > 100 : 
+            if (detection[2][2] * detection[2][3]) > 300 : 
                 x, y, w, h = detection[2][0],\
                     detection[2][1],\
                     detection[2][2],\
@@ -229,6 +305,7 @@ def YOLO():
                     cv2.line(image, p0, p1, color, 3)
                     if intersect(p0, p1, line[0], line[1]):
                         counter += 1
+                        section_count += 1
                 # text = "{}: {:.4f}".format(LABELS[classIDs[i]], confidences[i])
                 #text = "{}".format(indexIDs[i])
                 #cv2.putText(image, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
@@ -245,14 +322,39 @@ def YOLO():
         #cv2.putText(image, "Queue Size: {}".format(cap.Q.qsize()),
         #            (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
         
+        cv2.putText(image, str(elapsed_time), (0,150), cv2.FONT_HERSHEY_DUPLEX, 1.0, (255, 0, 0), 4)
+        #timeElapsed = (datetime.now() - startTime).total_seconds()
+        #cv2.putText(image, str(totalFrames), (0,300), cv2.FONT_HERSHEY_DUPLEX, 2.0, (255, 0, 0), 4)
+        #print(round(elapsed_time % 5))
+        cv2.putText(image, str(frames_count), (0,200), cv2.FONT_HERSHEY_DUPLEX, 1.0, (255, 0, 0), 4)
+        cv2.putText(image, str(section_count), (0,250), cv2.FONT_HERSHEY_DUPLEX, 1.0, (255, 0, 0), 4)
+        cv2.putText(image, str(frames_count % 120), (0,300), cv2.FONT_HERSHEY_DUPLEX, 1.0, (255, 0, 0), 4)
+        
+        #print(args["input"])
+        #print("write csv",time.time())
+        if (frames_count % vid_fps) == 0  :
+            with open(os.path.join(workdir, "results", counting_file_name), mode='a', newline='') as counting_file:
+                counting_writer = csv.writer(counting_file, delimiter=',')
+                counting_writer.writerow([elapsed_time, counter,section_count,gps_data.iloc[int(frames_count/vid_fps)]['longitude'],gps_data.iloc[int(frames_count/vid_fps)]['latitude']])
+                #counting_writer.writerow([elapsed_time, counter,section_count,gps_data.loc[frames_count/120,'X'],gps_data.loc[frames_count/120,'Y']])
+            print("writing points data")
+            section_count = 0
+            #prev_time = prev_time + 4
+        elapsed_time = (time.time() - startTime)
+        
+
+
+
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)   
         
-        cv2.imshow('Demo', image)
-        k = cv2.waitKey(1)
-        if k == 27:
-            break
+        #cv2.imshow('Demo', image)
+        #k = cv2.waitKey(1)
+        #if k == 27:
+        #    break
         #out.write(image)
         print(1/(time.time()-prev_time))
+        print("Progress : " + str(int(frames_count*100/total_vid_frames)) + "%" + " | Total Count : " + str(counter) + "| Section Count : " + str(section_count) )
+
     cap.release()
     out.release()
 
