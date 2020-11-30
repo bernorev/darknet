@@ -113,7 +113,7 @@ if Converter(input_file=f'{args["input"][:-4]}.gpx').gpx_to_csv(output_file=f'{a
 
 gps_csv_file = f'{args["input"][:-4]}.csv'
 
-gps_csv_file = gps_csv_file.replace("_R.","_L.")
+gps_csv_file = gps_csv_file.replace("_R","_L")
 print(f'GPS file = ' + gps_csv_file)
 time.sleep(1)
 #gps_csv_file = 'videos/SRblock2_1_L.csv'

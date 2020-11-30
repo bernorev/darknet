@@ -97,17 +97,17 @@ def YOLO():
 
     global metaMain, netMain, altNames, cap, darknet_image
 
-    configPath = "./cfg/yolov4-fruit.cfg"
-    weightPath = "./backup/yolov4-fruit_last.weights"
-    metaPath = "./data/fruit.data"
+    #configPath = "./cfg/yolov4-fruit.cfg"
+    #weightPath = "./backup/yolov4-fruit_last.weights"
+    #metaPath = "./data/fruit.data"
 
     #configPath = "./cfg/yolov4-tiny_fruit.cfg"
     #weightPath = "./backup/yolov4-tiny_fruit_last.weights"
     #metaPath = "./data/fruit.data"
 
-    #configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
-    #weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
-    #metaPath = "./data/fruit.data"
+    configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
+    weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
+    metaPath = "./data/fruit.data"
     
     
     if not os.path.exists(configPath):
@@ -139,7 +139,7 @@ def YOLO():
     darknet_image = darknet.make_image(width, height, 3)  
 
     #cap = cv2.VideoCapture("videos/SRblock2_1_L.MP4")
-    cap = cv2.VideoCapture("/media/berno/Transcend/Fruit_counting/Sandrivier_leroux_groep/Round_2/0343_01_R.MP4")
+    cap = cv2.VideoCapture("/media/berno/Transcend/Fruit_counting/11_2020/Cam2/ZZ2R_B_1.MP4")
 
     Thread(target=video_capture, args=(frame_queue, darknet_image_queue,width,height)).start()
 
