@@ -157,6 +157,7 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
     args.mosaic_bound = net.mosaic_bound;
     args.contrastive = net.contrastive;
     args.contrastive_jit_flip = net.contrastive_jit_flip;
+    args.contrastive_color = net.contrastive_color;
     if (dont_show && show_imgs) show_imgs = 2;
     args.show_imgs = show_imgs;
 
@@ -399,6 +400,12 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
             char buff[256];
             sprintf(buff, "%s/%s_last.weights", backup_directory, base);
             save_weights(net, buff);
+
+            if (net.ema_alpha && is_ema_initialized(net)) {
+                sprintf(buff, "%s/%s_ema.weights", backup_directory, base);
+                save_weights_upto(net, buff, net.n, 1);
+                printf(" EMA weights are saved to the file: %s \n", buff);
+            }
         }
         free_data(train);
     }
@@ -713,7 +720,7 @@ void validate_detector(char *datacfg, char *cfgfile, char *weightfile, char *out
     int t;
 
     float thresh = .001;
-    float nms = .45;
+    float nms = .6;
 
     int nthreads = 4;
     if (m < 4) nthreads = m;
