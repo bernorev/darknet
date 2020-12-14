@@ -34,8 +34,8 @@ def video_capture(frame_queue, darknet_image_queue ,width,height):
             endPixel = round(center_line+(net_width/2))
             frame = frame[startPixel:endPixel,:]
             ###
-            #frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE) 
-            frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE) 
+            frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE) 
+            #frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE) 
 
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame_resized = cv2.resize(frame_rgb, (width, height),
@@ -120,7 +120,7 @@ def YOLO():
     darknet_image = darknet.make_image(width, height, 3)  
 
 
-    cap = cv2.VideoCapture("videos/GH011084.MP4")
+    cap = cv2.VideoCapture("videos/T06_1_right.MP4")
 
 
     Thread(target=video_capture, args=(frame_queue, darknet_image_queue,width,height)).start()
@@ -159,9 +159,10 @@ def YOLO():
         #            (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
         
         #print(1/(time.time()-prev_time))
+        image = cv2.resize(image, (576, 1080),interpolation=cv2.INTER_LINEAR) 
         cv2.imshow('Demo', image)
         key = cv2.waitKey(1)
-        out.write(image)
+        #out.write(image)
         print(1/(time.time()-prev_time))
     cv2.destroyAllWindows()
     cap.release()

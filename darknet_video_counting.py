@@ -172,18 +172,13 @@ def YOLO():
     #weightPath = "./models/yolov4_fruit_last.weights"
     #metaPath = "./data/fruit.data"
 
-    configPath = "./cfg/yolov4-tiny_fruit.cfg"
-    weightPath = "./backup/yolov4-tiny_fruit_last.weights"
+    #configPath = "./cfg/yolov4-tiny_fruit.cfg"
+    #weightPath = "./backup/yolov4-tiny_fruit_last.weights"
+    #metaPath = "./data/fruit.data"
+
+    configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
+    weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
     metaPath = "./data/fruit.data"
-
-    #configPath = "./cfg/yolov3_tiny_pan_fruit.cfg"
-    #weightPath = "./backup/yolov3_tiny_pan_fruit_last.weights"
-    #metaPath = "./data/fruit.data"
-
-    #configPath = "./cfg/yolov4-tiny_3lSPP.txt"
-    #weightPath = "./backup/yolov4-tiny_3lSPP_last.weights"
-    #metaPath = "./data/fruit.data"
-
 
 
     if not os.path.exists(configPath):
@@ -227,7 +222,7 @@ def YOLO():
 
     #cap = cv2.VideoCapture("/media/berno/sata_disk/FruitCounting Videos/goedgegun_videos/green_apples_left_1.MP4")
     #cap = FileVideoStream("T06_1_right.MP4").start()
-    cap = FileVideoStream("E:/FruitCounting_Videos/tweefontein_videos/T10_1_left.MP4").start()
+    cap = FileVideoStream("videos/T06_1_right.MP4").start()
     #cap = FileVideoStream("/home/berno/Videos/MS93_left_2.mp4").start()
 
     #cap = FileVideoStream(0).start()

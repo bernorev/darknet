@@ -115,6 +115,7 @@ gps_csv_file = f'{args["input"][:-4]}.csv'
 
 gps_csv_file = gps_csv_file.replace("_R","_L")
 print(f'GPS file = ' + gps_csv_file)
+
 time.sleep(1)
 #gps_csv_file = 'videos/SRblock2_1_L.csv'
 
@@ -211,6 +212,9 @@ def YOLO():
     frames_count = 0
     section_count = 0
     video_end_frames = 0
+
+
+    time.sleep(1.0)
     #cap.set(3, 1280)
     #cap.set(4, 1024)
 
@@ -230,17 +234,19 @@ def YOLO():
     gps_data = pd.read_csv(gps_csv_file)
     gps_data = gps_data.drop_duplicates(subset=['time'], keep='first')
 
+
     #gps_point_count = len(gps_data.index)
     #vid_frames_per_gps_point = total_vid_frames/gps_point_count
 
-
+    last_fps = 0
+    current_fps = 0
     while True:
         prev_time = time.time()
 
         frame_read = frame_queue.get()
         darknet.copy_image_from_bytes(darknet_image, frame_read.tobytes())
         #
-        detections = darknet.detect_image(network, class_names, darknet_image, thresh=0.1,nms=0.6)
+        detections = darknet.detect_image(network, class_names, darknet_image, thresh=0.05,nms=0.6)
         
         
         #print(detections[1])
@@ -352,9 +358,11 @@ def YOLO():
         #if k == 27:
         #    break
         #out.write(image)
-        print(1/(time.time()-prev_time))
-        print("Progress : " + str(int(frames_count*100/total_vid_frames)) + "%" + " | Total Count : " + str(counter) + "| Section Count : " + str(section_count) )
+        current_fps = round(1/(time.time()-prev_time))
 
+        print("FPS : " + str((current_fps + last_fps) / 2))
+        print("Progress : " + str(int(frames_count*100/total_vid_frames)) + "%" + " | Total Count : " + str(counter) + "| Section Count : " + str(section_count) )
+        last_fps = current_fps
     cap.release()
     out.release()
 

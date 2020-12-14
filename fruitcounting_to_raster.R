@@ -11,7 +11,7 @@ library(gstat) # Use gstat's idw routine
 # pts <- spTransform(pts,CRS("+proj=utm +datum=WGS84 +zone=34S +no_defs +ellps=WGS84 +towgs84=0,0,0"))
 # 
 
-  block_name <- "D" 
+  block_name <- "" 
   block_files <- list.files(pattern = paste0(block_name,".*\\counting.csv$"),full.names = TRUE)
   
   # block_name <- "bardsley_2" 
@@ -27,11 +27,16 @@ library(gstat) # Use gstat's idw routine
   proj4string(pts) = CRS("+init=epsg:4326")
   mapview::mapview(pts)
   
+  ###
   writeOGR(pts, "./",paste0(block_name,"_counts") , driver="ESRI Shapefile")
+  ###
+  
   pts <- readOGR(paste0(block_name,"_counts.shp"))
   names(pts) <- c("elapsed_time","counter","section_count")
   
+  
   block <- readOGR(paste0(block_name,".gpkg"))
+  block <- readOGR("block.gpkg")
   block_utm <- spTransform(block,CRS("+init=epsg:3857"))
 
   # pts$path <- pts$path %>% as.numeric()
