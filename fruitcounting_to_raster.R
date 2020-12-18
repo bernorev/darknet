@@ -11,7 +11,7 @@ library(gstat) # Use gstat's idw routine
 # pts <- spTransform(pts,CRS("+proj=utm +datum=WGS84 +zone=34S +no_defs +ellps=WGS84 +towgs84=0,0,0"))
 # 
 
-  block_name <- "" 
+  block_name <- "B4" 
   block_files <- list.files(pattern = paste0(block_name,".*\\counting.csv$"),full.names = TRUE)
   
   # block_name <- "bardsley_2" 
@@ -28,7 +28,7 @@ library(gstat) # Use gstat's idw routine
   mapview::mapview(pts)
   
   ###
-  writeOGR(pts, "./",paste0(block_name,"_counts") , driver="ESRI Shapefile")
+  # writeOGR(pts, "./",paste0(block_name,"_counts") , driver="ESRI Shapefile")
   ###
   
   pts <- readOGR(paste0(block_name,"_counts.shp"))
@@ -46,7 +46,7 @@ library(gstat) # Use gstat's idw routine
   # pts <- pts %>% select(section_count)
   pts <- spTransform(pts,CRS("+init=epsg:3857"))
   
-  block_grid <- makegrid(block_utm, cellsize = 7.5,pretty = FALSE)
+  block_grid <- makegrid(block_utm, cellsize = 5,pretty = FALSE)
   colnames(block_grid) <- c("x","y")
   block_grid <- SpatialPoints(block_grid, proj4string = CRS(proj4string(block_utm)))
   block_grid <- SpatialPixels(block_grid[block_utm,])

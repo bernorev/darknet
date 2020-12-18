@@ -139,7 +139,7 @@ def YOLO():
     darknet_image = darknet.make_image(width, height, 3)  
 
     #cap = cv2.VideoCapture("videos/SRblock2_1_L.MP4")
-    cap = cv2.VideoCapture("/media/berno/Transcend/Fruit_counting/du_toit/B2_L.MP4")
+    cap = cv2.VideoCapture("/media/berno/Transcend/Fruit_counting/du_toit/B4_L.MP4")
 
     Thread(target=video_capture, args=(frame_queue, darknet_image_queue,width,height)).start()
 

@@ -232,11 +232,14 @@ def YOLO():
     tracks = ct.update([])
 
     gps_data = pd.read_csv(gps_csv_file)
-    gps_data = gps_data.drop_duplicates(subset=['time'], keep='first')
+    #gps_data = gps_data.drop_duplicates(subset=['time'], keep='first')
 
 
-    #gps_point_count = len(gps_data.index)
-    #vid_frames_per_gps_point = total_vid_frames/gps_point_count
+    gps_point_count = len(gps_data.index)
+    vid_frames_per_gps_point = total_vid_frames/gps_point_count
+
+    print(total_vid_frames)
+    print(gps_point_count)
 
     last_fps = 0
     current_fps = 0
@@ -341,8 +344,15 @@ def YOLO():
         if (frames_count % vid_fps) == 0  :
             with open(os.path.join(workdir, "results", counting_file_name), mode='a', newline='') as counting_file:
                 counting_writer = csv.writer(counting_file, delimiter=',')
-                counting_writer.writerow([elapsed_time, counter,section_count,gps_data.iloc[int(frames_count/vid_fps)]['longitude'],gps_data.iloc[int(frames_count/vid_fps)]['latitude']])
+                #gps_point_count = len(gps_data.index)
+                #vid_frames_per_gps_point = total_vid_frames/gps_point_count
+                #counting_writer.writerow([elapsed_time, counter,section_count,gps_data.iloc[int(frames_count/vid_fps)]['longitude'],gps_data.iloc[int(frames_count/vid_fps)]['latitude']])
                 #counting_writer.writerow([elapsed_time, counter,section_count,gps_data.loc[frames_count/120,'X'],gps_data.loc[frames_count/120,'Y']])
+                print(frames_count)
+                print(vid_fps)
+                print(vid_frames_per_gps_point)
+                print("GPS row " + str(int((frames_count/vid_fps)*vid_frames_per_gps_point)))
+                counting_writer.writerow([elapsed_time, counter,section_count,gps_data.iloc[int(round((frames_count /  vid_fps)*18 + 1))]['longitude'],gps_data.iloc[int(round((frames_count / vid_fps)*18 + 1))]['latitude']])
             print("writing points data")
             section_count = 0
             #prev_time = prev_time + 4
