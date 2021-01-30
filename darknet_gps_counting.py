@@ -102,18 +102,21 @@ workdir = os.getcwd()
 
 #gps extract string for gopro2gpx 
 #videos/GH011086.MP4
-extract_str = f'gopro2gpx -vvv {args["input"]} {args["input"][:-4]}'
-os.system(extract_str)
+
+######EXTRACT GPS DATA
+#extract_str = f'gopro2gpx -vvv {args["input"]} {args["input"][:-4]}'
+#os.system(extract_str)
 
 #convert GPX to csv
-if Converter(input_file=f'{args["input"][:-4]}.gpx').gpx_to_csv(output_file=f'{args["input"][:-4]}.csv') == False:
-    sys.exit("GPS file conversion failed")
+#if Converter(input_file=f'{args["input"][:-4]}.gpx').gpx_to_csv(output_file=f'{args["input"][:-4]}.csv') == False:
+#    sys.exit("GPS file conversion failed")
 #gps file to use
 
 
 gps_csv_file = f'{args["input"][:-4]}.csv'
 
-gps_csv_file = gps_csv_file.replace("_R","_L")
+gps_csv_file = gps_csv_file.replace("_R","")
+gps_csv_file = gps_csv_file.replace("_L","")
 print(f'GPS file = ' + gps_csv_file)
 
 time.sleep(1)
@@ -138,13 +141,13 @@ def YOLO():
     #weightPath = "./backup/yolov4-fruit_last.weights"
     #metaPath = "./data/fruit.data"
 
-    #configPath = "./cfg/yolov4-tiny_fruit.cfg"
-    #weightPath = "./backup/yolov4-tiny_fruit_last.weights"
-    #metaPath = "./data/fruit.data"
-
-    configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
-    weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
+    configPath = "./cfg/yolov4-tiny_fruit.cfg"
+    weightPath = "./backup/yolov4-tiny_fruit_last.weights"
     metaPath = "./data/fruit.data"
+
+    #configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
+    #weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
+    #metaPath = "./data/fruit.data"
     
     
     if not os.path.exists(configPath):
@@ -181,7 +184,7 @@ def YOLO():
     print("Total Frame")
     total_vid_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     print(total_vid_frames)
-    vid_fps = int(round(cap.get(cv2.CAP_PROP_FPS)))
+    vid_fps = cap.get(cv2.CAP_PROP_FPS)
     print(vid_fps)
 
     result_video_name = args["input"].rsplit('.')[-2].rsplit('/',1)[-1] + "_counting.avi"
@@ -198,7 +201,7 @@ def YOLO():
     counting_file_name = args["input"].rsplit('.')[-2].rsplit('/',1)[-1] + "_counting.csv"
     counting_file = open(os.path.join(workdir, "results", counting_file_name), mode='w', newline='')
     counting_writer = csv.writer(counting_file, delimiter=',')
-    counting_writer.writerow(["elapsed_time", "counter","section_count",'longitude','latitude'])
+    counting_writer.writerow(["elapsed_time", "counter","section_count",'Longitude','Latitude'])
     counting_file.close()
 
     #wait for everything to initialize
@@ -231,15 +234,22 @@ def YOLO():
     H = None
     tracks = ct.update([])
 
-    gps_data = pd.read_csv(gps_csv_file)
+    gps_data = pd.read_csv(gps_csv_file,sep='\t')
     #gps_data = gps_data.drop_duplicates(subset=['time'], keep='first')
 
 
     gps_point_count = len(gps_data.index)
-    vid_frames_per_gps_point = total_vid_frames/gps_point_count
+    print("gps points count :" + str(gps_point_count))
 
-    print(total_vid_frames)
-    print(gps_point_count)
+    vid_frames_per_gps_point = total_vid_frames/gps_point_count
+    print("vid_frames_per_gps_point :" + str(vid_frames_per_gps_point))
+
+    vid_length = total_vid_frames/vid_fps
+    print("vid_length :" + str(vid_length))
+
+    gps_points_per_second = gps_point_count/vid_length
+    print("gps_points_per_second :" + str(gps_points_per_second))
+
 
     last_fps = 0
     current_fps = 0
@@ -341,18 +351,26 @@ def YOLO():
         
         #print(args["input"])
         #print("write csv",time.time())
-        if (frames_count % vid_fps) == 0  :
+        if (frames_count % int(vid_fps)) == 0  :
             with open(os.path.join(workdir, "results", counting_file_name), mode='a', newline='') as counting_file:
                 counting_writer = csv.writer(counting_file, delimiter=',')
                 #gps_point_count = len(gps_data.index)
                 #vid_frames_per_gps_point = total_vid_frames/gps_point_count
                 #counting_writer.writerow([elapsed_time, counter,section_count,gps_data.iloc[int(frames_count/vid_fps)]['longitude'],gps_data.iloc[int(frames_count/vid_fps)]['latitude']])
                 #counting_writer.writerow([elapsed_time, counter,section_count,gps_data.loc[frames_count/120,'X'],gps_data.loc[frames_count/120,'Y']])
+                vid_file_number = int(gps_csv_file[-5])-1
                 print(frames_count)
                 print(vid_fps)
                 print(vid_frames_per_gps_point)
-                print("GPS row " + str(int((frames_count/vid_fps)*vid_frames_per_gps_point)))
-                counting_writer.writerow([elapsed_time, counter,section_count,gps_data.iloc[int(round((frames_count /  vid_fps)*18 + 1))]['longitude'],gps_data.iloc[int(round((frames_count / vid_fps)*18 + 1))]['latitude']])
+                print("GPS row " + str(int(round(((frames_count+vid_file_number*1502*vid_fps) /  vid_fps)*2.5  - 1))))
+
+                
+                print(f'vid {vid_file_number}')
+                gps_file_start_offset = int((vid_file_number - 1) * ((25 * 60) + 2) * 2.5)
+                print(f'gps_file_start_offset {gps_file_start_offset}')
+                print(f'row {int(round((frames_count /  vid_fps)*2.5 ) )- 1 + gps_file_start_offset}')
+                #counting_writer.writerow([elapsed_time, counter,section_count,gps_data.iloc[int(round((frames_count /  vid_fps)*18.17064 + 1))]['Longitude'],gps_data.iloc[int(round((frames_count / vid_fps)*18.17064 + 1))]['Latitude']])
+                counting_writer.writerow([elapsed_time, counter,section_count,gps_data.iloc[int(round(((frames_count+vid_file_number*1502*vid_fps) /  vid_fps)*2.5 ) )- 1 ]['Longitude'],gps_data.iloc[int(round(((frames_count+vid_file_number*1502*vid_fps) / vid_fps)*2.5 ) )- 1]['Latitude']])
             print("writing points data")
             section_count = 0
             #prev_time = prev_time + 4

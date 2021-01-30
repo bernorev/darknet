@@ -11,19 +11,19 @@ from queue import Queue
 
 def parser():
     parser = argparse.ArgumentParser(description="YOLO Object Detection")
-    parser.add_argument("--input", type=str, default=0,
+    parser.add_argument("--input", type=str, default="/home/berno/Documents/darknet/videos/B4_L.mp4",
                         help="video source. If empty, uses webcam 0 stream")
     parser.add_argument("--out_filename", type=str, default="",
                         help="inference video name. Not saved if empty")
-    parser.add_argument("--weights", default="./models/yolov4.weights",
+    parser.add_argument("--weights", default="./backup/yolov4-tiny-3l_fruit_last.weights",
                         help="yolo weights path")
     parser.add_argument("--dont_show", action='store_true',
                         help="windown inference display. For headless systems")
     parser.add_argument("--ext_output", action='store_true',
                         help="display bbox coordinates of detected objects")
-    parser.add_argument("--config_file", default="./cfg/yolov4-custom.cfg",
+    parser.add_argument("--config_file", default="./cfg/yolov4-tiny-3l_fruit.cfg",
                         help="path to config file")
-    parser.add_argument("--data_file", default="./cfg/coco.data",
+    parser.add_argument("--data_file", default="./data/fruit.data",
                         help="path to data file")
     parser.add_argument("--thresh", type=float, default=.25,
                         help="remove detections with confidence below this value")
@@ -69,8 +69,9 @@ def video_capture(frame_queue, darknet_image_queue):
         frame_resized = cv2.resize(frame_rgb, (width, height),
                                    interpolation=cv2.INTER_LINEAR)
         frame_queue.put(frame_resized)
-        darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())
-        darknet_image_queue.put(darknet_image)
+        img_for_detect = darknet.make_image(width, height, 3)
+        darknet.copy_image_from_bytes(img_for_detect, frame_resized.tobytes())
+        darknet_image_queue.put(img_for_detect)
     cap.release()
 
 
@@ -114,7 +115,7 @@ if __name__ == '__main__':
     darknet_image_queue = Queue(maxsize=1)
     detections_queue = Queue(maxsize=1)
     fps_queue = Queue(maxsize=1)
-
+    
     args = parser()
     check_arguments_errors(args)
     network, class_names, class_colors = darknet.load_network(
@@ -129,6 +130,7 @@ if __name__ == '__main__':
     height = darknet.network_height(network)
     darknet_image = darknet.make_image(width, height, 3)
     input_path = str2int(args.input)
+    print(input_path)
     cap = cv2.VideoCapture(input_path)
     Thread(target=video_capture, args=(frame_queue, darknet_image_queue)).start()
     Thread(target=inference, args=(darknet_image_queue, detections_queue, fps_queue)).start()

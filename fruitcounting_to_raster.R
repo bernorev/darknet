@@ -11,7 +11,7 @@ library(gstat) # Use gstat's idw routine
 # pts <- spTransform(pts,CRS("+proj=utm +datum=WGS84 +zone=34S +no_defs +ellps=WGS84 +towgs84=0,0,0"))
 # 
 
-  block_name <- "B4" 
+  block_name <- "K0o1C" 
   block_files <- list.files(pattern = paste0(block_name,".*\\counting.csv$"),full.names = TRUE)
   
   # block_name <- "bardsley_2" 
@@ -21,22 +21,25 @@ library(gstat) # Use gstat's idw routine
     lapply(read_csv) %>% 
     bind_rows
   
-  pts <- pts %>% group_by(latitude,longitude)%>% summarise_all(sum)
+  pts <- pts %>% group_by(Latitude,Longitude)%>% summarise_all(sum)
   
-  coordinates(pts) <- ~longitude+latitude
+  coordinates(pts) <- ~Longitude+Latitude
   proj4string(pts) = CRS("+init=epsg:4326")
   mapview::mapview(pts)
   
   ###
-  # writeOGR(pts, "./",paste0(block_name,"_counts") , driver="ESRI Shapefile")
+  writeOGR(pts, "./",paste0(block_name,"_counts") , driver="ESRI Shapefile",overwrite = TRUE)
   ###
   
   pts <- readOGR(paste0(block_name,"_counts.shp"))
   names(pts) <- c("elapsed_time","counter","section_count")
   
+  lower_quantile <- quantile(pts$section_count, 0.1)
   
-  block <- readOGR(paste0(block_name,".gpkg"))
-  block <- readOGR("block.gpkg")
+  pts <- pts[pts$section_count > lower_quantile,]
+  mapview::mapview(pts)
+  # block <- readOGR(paste0(block_name,".shp"))
+  block <- readOGR(paste0(block_name,"_block.gpkg"))
   block_utm <- spTransform(block,CRS("+init=epsg:3857"))
 
   # pts$path <- pts$path %>% as.numeric()

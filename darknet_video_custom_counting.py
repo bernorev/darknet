@@ -33,7 +33,7 @@ def video_capture(frame_queue, darknet_image_queue ,width,height):
             endPixel = round(center_line+(net_width/2))
             frame = frame[startPixel:endPixel,:]
             #frame = frame[400:680,:]
-            ###
+            #########
             frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE) 
             #frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE) 
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -41,7 +41,7 @@ def video_capture(frame_queue, darknet_image_queue ,width,height):
             #colour correction
             lab = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2LAB)
             lab_planes = cv2.split(lab)
-            clahe = cv2.createCLAHE(clipLimit=3.0,tileGridSize=(8,8))
+            clahe = cv2.createCLAHE(clipLimit=3.0,tileGridSize=(16,16))
             lab_planes[0] = clahe.apply(lab_planes[0])
             lab = cv2.merge(lab_planes)
             frame_resized = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
@@ -90,24 +90,28 @@ def YOLO():
         dtype="uint8")
     #ct = CentroidTracker(maxDisappeared=0, maxDistance=200)
     ct = Sort(max_age=1, min_hits=1, iou_threshold=0.2)
-    trackers = []
-    trackableObjects = {}
     memory = {}
     counter = 0
 
     global metaMain, netMain, altNames, cap, darknet_image
 
+##### GRAPES
+    #configPath = "./cfg/yolov4-tiny_grapes.cfg"
+    #weightPath = "./backup/yolov4-tiny_grapes_last.weights"
+    #metaPath = "./data/fruit.data"
+
+##### FRUIT
     #configPath = "./cfg/yolov4-fruit.cfg"
     #weightPath = "./backup/yolov4-fruit_last.weights"
     #metaPath = "./data/fruit.data"
 
-    #configPath = "./cfg/yolov4-tiny_fruit.cfg"
-    #weightPath = "./backup/yolov4-tiny_fruit_last.weights"
-    #metaPath = "./data/fruit.data"
-
-    configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
-    weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
+    configPath = "./cfg/yolov4-tiny_fruit.cfg"
+    weightPath = "./backup/yolov4-tiny_fruit_last.weights"
     metaPath = "./data/fruit.data"
+
+    #configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
+    #weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
+    #metaPath = "./data/fruit.data"
     
     
     if not os.path.exists(configPath):
@@ -138,8 +142,8 @@ def YOLO():
     # Create an image we reuse for each detect
     darknet_image = darknet.make_image(width, height, 3)  
 
-    #cap = cv2.VideoCapture("videos/SRblock2_1_L.MP4")
-    cap = cv2.VideoCapture("/media/berno/Transcend/Fruit_counting/du_toit/B4_L.MP4")
+    #cap = cv2.VideoCapture("videos/T06_1_right.MP4")
+    cap = cv2.VideoCapture("/media/berno/Transcend/Fruit_counting/tweefontein/12_01_2021/T06_L.MP4")
 
     Thread(target=video_capture, args=(frame_queue, darknet_image_queue,width,height)).start()
 
@@ -250,7 +254,7 @@ def YOLO():
         k = cv2.waitKey(1)
         if k == 27:
             break
-        out.write(image)
+        #out.write(image)
         print(1/(time.time()-prev_time))
     cap.release()
     out.release()
