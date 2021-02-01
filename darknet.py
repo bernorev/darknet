@@ -130,10 +130,10 @@ def print_detections(detections, coordinates=False):
 
 def draw_boxes(detections, image, colors):
     import cv2
-    for label, confidence, bbox in detections:
+    for label, confidence, bbox,track_id in detections:
         left, top, right, bottom = bbox2points(bbox)
         cv2.rectangle(image, (left, top), (right, bottom), colors[label], 1)
-        cv2.putText(image, "{} [{:.2f}]".format(label, float(confidence)),
+        cv2.putText(image, "{} [{:.2f}] {}".format(label, float(confidence),str(track_id)),
                     (left, top - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
                     colors[label], 2)
     return image
@@ -141,9 +141,9 @@ def draw_boxes(detections, image, colors):
 
 def decode_detection(detections):
     decoded = []
-    for label, confidence, bbox in detections:
+    for label, confidence, bbox,track_id in detections:
         confidence = str(round(confidence * 100, 2))
-        decoded.append((str(label), confidence, bbox))
+        decoded.append((str(label), confidence, bbox,track_id))
     return decoded
 
 
@@ -157,7 +157,8 @@ def remove_negatives(detections, class_names, num):
             if detections[j].prob[idx] > 0:
                 bbox = detections[j].bbox
                 bbox = (bbox.x, bbox.y, bbox.w, bbox.h)
-                predictions.append((name, detections[j].prob[idx], (bbox)))
+                track_id = detections[j].track_id
+                predictions.append((name, detections[j].prob[idx], (bbox),track_id))
     return predictions
 
 

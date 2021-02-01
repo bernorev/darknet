@@ -11,17 +11,35 @@ library(gstat) # Use gstat's idw routine
 # pts <- spTransform(pts,CRS("+proj=utm +datum=WGS84 +zone=34S +no_defs +ellps=WGS84 +towgs84=0,0,0"))
 # 
 
-  block_name <- "K0o1C" 
+  block_name <- "90" 
   block_files <- list.files(pattern = paste0(block_name,".*\\counting.csv$"),full.names = TRUE)
   
   # block_name <- "bardsley_2" 
   # block_files <- list.files(pattern =".*\\counting.csv$",full.names = TRUE)[2]
   # 
-  pts <- block_files %>% 
-    lapply(read_csv) %>% 
-    bind_rows
   
-  pts <- pts %>% group_by(Latitude,Longitude)%>% summarise_all(sum)
+  left_counting <- read_csv(block_files[1]) %>% mutate(camera_side = "L") %>% mutate(order = 1:nrow(.))
+  right_counting <- read_csv(block_files[2]) %>% mutate(camera_side = "R")%>% mutate(order = 1:nrow(.))
+  
+  pts <- bind_rows(left_counting,right_counting) %>% dplyr::arrange(order) %>%
+    mutate(side_index = 2:(nrow(right_counting)+nrow(left_counting)+1) %/% 2) %>%
+    group_by(order) %>%
+    summarise(elapsed_time = mean(elapsed_time), 
+              counter = sum(counter),
+              section_count = sum(section_count),
+              Longitude = mean(Longitude), 
+              Latitude = mean(Latitude), 
+              ) %>%
+    ungroup() %>%
+    select(!order)
+    
+    
+  
+  # pts <- block_files %>% 
+  #   lapply(read_csv) %>% 
+  #   lapply(mutate(camera = c))
+  #   bind_rows
+  #pts <- pts %>% group_by(Latitude,Longitude)%>% summarise_all(sum)
   
   coordinates(pts) <- ~Longitude+Latitude
   proj4string(pts) = CRS("+init=epsg:4326")
@@ -31,15 +49,18 @@ library(gstat) # Use gstat's idw routine
   writeOGR(pts, "./",paste0(block_name,"_counts") , driver="ESRI Shapefile",overwrite = TRUE)
   ###
   
+  
+  
   pts <- readOGR(paste0(block_name,"_counts.shp"))
   names(pts) <- c("elapsed_time","counter","section_count")
   
   lower_quantile <- quantile(pts$section_count, 0.1)
   
   pts <- pts[pts$section_count > lower_quantile,]
-  mapview::mapview(pts)
+  
   # block <- readOGR(paste0(block_name,".shp"))
   block <- readOGR(paste0(block_name,"_block.gpkg"))
+  mapview::mapview(pts) + mapview::mapview(block)
   block_utm <- spTransform(block,CRS("+init=epsg:3857"))
 
   # pts$path <- pts$path %>% as.numeric()
@@ -70,6 +91,7 @@ library(gstat) # Use gstat's idw routine
   
   writeRaster(r.m,paste0(block_name,"_counts.tif"),"GTiff",overwrite=TRUE)   
   
+
   ######rasterize functions
 #   rast <- raster(pts,res=15)
 #   r <- rasterize(pts, rast, pts$section_count, fun = sum)

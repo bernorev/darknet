@@ -109,6 +109,10 @@ def YOLO():
     weightPath = "./backup/yolov4-tiny_fruit_last.weights"
     metaPath = "./data/fruit.data"
 
+    #configPath = "./cfg/yolov4-tiny_contrastive_coco.cfg"
+    #weightPath = "./models/yolov4-tiny_contrastive_coco.weights"
+    #metaPath = "./cfg/coco.data"
+
     #configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
     #weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
     #metaPath = "./data/fruit.data"
@@ -143,7 +147,7 @@ def YOLO():
     darknet_image = darknet.make_image(width, height, 3)  
 
     #cap = cv2.VideoCapture("videos/T06_1_right.MP4")
-    cap = cv2.VideoCapture("/media/berno/Transcend/Fruit_counting/tweefontein/12_01_2021/T06_L.MP4")
+    cap = cv2.VideoCapture("/home/berno/Desktop/applethwaite_28_jan_2021/12_1_L.MP4")
 
     Thread(target=video_capture, args=(frame_queue, darknet_image_queue,width,height)).start()
 
@@ -170,7 +174,6 @@ def YOLO():
         darknet.copy_image_from_bytes(darknet_image, frame_read.tobytes())
         #
         detections = darknet.detect_image(network, class_names, darknet_image, thresh=0.05,nms=0.6)
-        
         
         #print(detections[1])
         image = frame_read
