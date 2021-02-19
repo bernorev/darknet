@@ -115,7 +115,7 @@ if Converter(input_file=f'{args["input"][:-4]}.gpx').gpx_to_csv(output_file=f'{a
 
 gps_csv_file = f'{args["input"][:-4]}.csv'
 
-gps_csv_file = gps_csv_file.replace("_R","_L")
+gps_csv_file = gps_csv_file.replace("_L","_R")
 #gps_csv_file = gps_csv_file.replace("_L","")
 print(f'GPS file = ' + gps_csv_file)
 
@@ -142,7 +142,7 @@ def YOLO():
     #metaPath = "./data/fruit.data"
 
     configPath = "./cfg/yolov4-tiny_fruit.cfg"
-    weightPath = "./backup/yolov4-tiny_fruit_last.weights"
+    weightPath = "./backup/yolov4-tiny_fruit_15000.weights"
     metaPath = "./data/fruit.data"
 
     #configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"

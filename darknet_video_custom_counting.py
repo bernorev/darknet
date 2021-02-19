@@ -109,10 +109,6 @@ def YOLO():
     weightPath = "./backup/yolov4-tiny_fruit_last.weights"
     metaPath = "./data/fruit.data"
 
-    #configPath = "./cfg/yolov4-tiny_contrastive_coco.cfg"
-    #weightPath = "./models/yolov4-tiny_contrastive_coco.weights"
-    #metaPath = "./cfg/coco.data"
-
     #configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
     #weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
     #metaPath = "./data/fruit.data"

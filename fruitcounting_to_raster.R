@@ -11,35 +11,35 @@ library(gstat) # Use gstat's idw routine
 # pts <- spTransform(pts,CRS("+proj=utm +datum=WGS84 +zone=34S +no_defs +ellps=WGS84 +towgs84=0,0,0"))
 # 
 
-  block_name <- "90" 
-  block_files <- list.files(pattern = paste0(block_name,".*\\counting.csv$"),full.names = TRUE)
+  block_name <- "2" 
+  block_files <- list.files(pattern = paste0("^",block_name,".*\\counting.csv$"),full.names = TRUE)
   
   # block_name <- "bardsley_2" 
   # block_files <- list.files(pattern =".*\\counting.csv$",full.names = TRUE)[2]
   # 
-  
-  left_counting <- read_csv(block_files[1]) %>% mutate(camera_side = "L") %>% mutate(order = 1:nrow(.))
-  right_counting <- read_csv(block_files[2]) %>% mutate(camera_side = "R")%>% mutate(order = 1:nrow(.))
-  
+
+  left_counting <- block_files[seq(1,length(block_files),2)] %>% lapply(read_csv) %>% bind_rows %>% mutate(camera_side = "L") %>% mutate(order = 1:nrow(.))
+  right_counting <- block_files[seq(2,length(block_files),2)] %>% lapply(read_csv) %>% bind_rows %>% mutate(camera_side = "R")%>% mutate(order = 1:nrow(.))
+
   pts <- bind_rows(left_counting,right_counting) %>% dplyr::arrange(order) %>%
     mutate(side_index = 2:(nrow(right_counting)+nrow(left_counting)+1) %/% 2) %>%
     group_by(order) %>%
-    summarise(elapsed_time = mean(elapsed_time), 
+    summarise(elapsed_time = mean(elapsed_time),
               counter = sum(counter),
               section_count = sum(section_count),
-              Longitude = mean(Longitude), 
-              Latitude = mean(Latitude), 
+              Longitude = mean(Longitude),
+              Latitude = mean(Latitude),
               ) %>%
     ungroup() %>%
     select(!order)
-    
+
     
   
-  # pts <- block_files %>% 
-  #   lapply(read_csv) %>% 
-  #   lapply(mutate(camera = c))
+  # pts <- block_files %>%
+  #   lapply(read_csv) %>%
+  #   # lapply(mutate(camera = c)) %>%
   #   bind_rows
-  #pts <- pts %>% group_by(Latitude,Longitude)%>% summarise_all(sum)
+  # pts <- pts %>% group_by(Latitude,Longitude)%>% summarise_all(sum)
   
   coordinates(pts) <- ~Longitude+Latitude
   proj4string(pts) = CRS("+init=epsg:4326")

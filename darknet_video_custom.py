@@ -79,13 +79,13 @@ def YOLO():
     #weightPath = "./backup/yolov4-fruit_last.weights"
     #metaPath = "./data/fruit.data"
 
-    configPath = "./cfg/yolov4-tiny_fruit.cfg"
-    weightPath = "./backup/yolov4-tiny_fruit_last.weights"
-    metaPath = "./data/fruit.data"
-
-    #configPath = "./cfg/yolov4-tiny-3l_fruit.cfg"
-    #weightPath = "./backup/yolov4-tiny-3l_fruit_last.weights"
+    #configPath = "./cfg/yolov4-tiny_fruit.cfg"
+    #weightPath = "./backup/yolov4-tiny_fruit_15000.weights"
     #metaPath = "./data/fruit.data"
+
+    configPath = "./cfg/fruit-tiny-3l.cfg"
+    weightPath = "./backup/fruit-tiny-3l_last.weights"
+    metaPath = "./data/fruit.data"
 
 
 
@@ -120,8 +120,9 @@ def YOLO():
     darknet_image = darknet.make_image(width, height, 3)  
 
 
-    #cap = cv2.VideoCapture("videos/T06_1_right.MP4")
-    cap = cv2.VideoCapture("/home/berno/Desktop/dutoit_13_jan_2021/G2D_1_L.MP4")
+    cap = cv2.VideoCapture("videos/B4_L.mp4")
+    #cap = cv2.VideoCapture("/media/berno/sata_disk/Fruit_Counting_Videos/GH011084.MP4")
+    #cap = cv2.VideoCapture("/media/berno/sata_disk/gopro2/100GOPRO/GX010103.MP4")
 
     Thread(target=video_capture, args=(frame_queue, darknet_image_queue,width,height)).start()
     #cap = cv2.VideoCapture(0)
@@ -137,12 +138,13 @@ def YOLO():
     #cap.set(3, 1280)
     #cap.set(4, 1024)
     out = cv2.VideoWriter(
-        "output.avi", cv2.VideoWriter_fourcc(*"MJPG"), 120.0,
-        (width, height))
+        "output.avi", cv2.VideoWriter_fourcc(*"MJPG"), 60.0,
+        (576, 1080))
     
     print("Starting the YOLO loop...")
-
+    print(class_colors)
     key = ''
+    class_colors = {'fruit': (221, 0, 105)}
     while key != 113:
         prev_time = time.time()
 
@@ -162,7 +164,7 @@ def YOLO():
         image = cv2.resize(image, (576, 1080),interpolation=cv2.INTER_LINEAR) 
         cv2.imshow('Demo', image)
         key = cv2.waitKey(1)
-        #out.write(image)
+        out.write(image)
         print(1/(time.time()-prev_time))
     cv2.destroyAllWindows()
     cap.release()
