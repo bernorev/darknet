@@ -112,7 +112,7 @@ if Converter(input_file=f'{args["input"][:-4]}.gpx').gpx_to_csv(output_file=f'{a
 
 gps_csv_file = f'{args["input"][:-4]}.csv'
 
-gps_csv_file = gps_csv_file.replace("_L","_R")
+gps_csv_file = gps_csv_file.replace("_R","_L")
 #gps_csv_file = gps_csv_file.replace("_L","")
 print(f'GPS file = ' + gps_csv_file)
 
@@ -133,17 +133,17 @@ def YOLO():
     global metaMain, netMain, altNames, cap, darknet_image
 
 ##### GRAPES
-    #configPath = "./cfg/yolov4-tiny_grapes.cfg"
-    #weightPath = "./backup/yolov4-tiny_grapes_last.weights"
-    #metaPath = "./data/fruit.data"
+    configPath = "./cfg/grapes-tiny.cfg"
+    weightPath = "./backup/grapes-tiny_last.weights"
+    metaPath = "./data/fruit.data"
 ##### Fruit    
     #configPath = "./cfg/yolov4-tiny_fruit.cfg"
     #weightPath = "./backup/yolov4-tiny_fruit_15000.weights"
     #metaPath = "./data/fruit.data"   
 
-    configPath = "./cfg/fruit-tiny-3l.cfg"
-    weightPath = "./backup/fruit-tiny-3l_last.weights"
-    metaPath = "./data/fruit.data"
+    #configPath = "./cfg/fruit-tiny-3l.cfg"
+    #weightPath = "./backup/fruit-tiny-3l_last.weights"
+    #metaPath = "./data/fruit.data"
     
     if not os.path.exists(configPath):
         raise ValueError("Invalid config path `" +
@@ -258,7 +258,7 @@ def YOLO():
         frame_read = frame_queue.get()
         darknet.copy_image_from_bytes(darknet_image, frame_read.tobytes())
         #
-        detections = darknet.detect_image(network, class_names, darknet_image, thresh=0.05,nms=0.6)
+        detections = darknet.detect_image(network, class_names, darknet_image, thresh=0.1,nms=0.6)
         
         
         #print(detections[1])
@@ -384,7 +384,7 @@ def YOLO():
         
         #cv2.imshow('Demo', image)
         #k = cv2.waitKey(1)
-        #f k == 27:
+        #if k == 27:
         #    break
         #out.write(image)
         try:

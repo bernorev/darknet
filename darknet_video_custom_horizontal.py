@@ -77,10 +77,13 @@ def YOLO():
     #weightPath = "./backup/yolov4-tiny_fruit_15000.weights"
     #metaPath = "./data/fruit.data"
 
-    configPath = "./cfg/fruit-tiny-3l.cfg"
-    weightPath = "./backup/fruit-tiny-3l_last.weights"
+    #configPath = "./cfg/fruit-tiny-3l.cfg"
+    #weightPath = "./backup/fruit-tiny-3l_last.weights"
+    #metaPath = "./data/fruit.data"
+##### GRAPES
+    configPath = "./cfg/grapes-tiny.cfg"
+    weightPath = "./backup/grapes-tiny_last.weights"
     metaPath = "./data/fruit.data"
-
 
 
     
@@ -114,7 +117,7 @@ def YOLO():
     darknet_image = darknet.make_image(width, height, 3)  
 
 
-    cap = cv2.VideoCapture("/media/berno/Transcend/Fruit_counting/orgderac_12_feb_2021/3_01_L.MP4")
+    cap = cv2.VideoCapture("/media/berno/Transcend/Fruit_counting/tafeldruiwe_12_feb_2021/1_01_L.MP4")
     #cap = cv2.VideoCapture("/media/berno/sata_disk/gopro2/100GOPRO/GX010103.MP4")
 
     Thread(target=video_capture, args=(frame_queue, darknet_image_queue,width,height)).start()
@@ -154,7 +157,7 @@ def YOLO():
         #            (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
         
         #print(1/(time.time()-prev_time))
-        image = cv2.resize(image, (160, 576),interpolation=cv2.INTER_LINEAR) 
+        image = cv2.resize(image, (896,512),interpolation=cv2.INTER_LINEAR) 
         cv2.imshow('Demo', image)
         key = cv2.waitKey(1)
         #out.write(image)
